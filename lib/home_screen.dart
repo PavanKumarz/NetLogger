@@ -1,53 +1,166 @@
 import 'package:flutter/material.dart';
+import 'package:wifi_logger/services/api_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final String _networkName = 'Home_WiFi';
+  double _downloadSpeed = 0;
+  double _uploadSpeed = 0;
+  int _ping = 0;
+  String _status = 'Not Tested';
+  String _lastTest = 'Never';
+  bool _isTesting = false;
+  String _serverStatus = 'Server: Unknown';
+  Color _serverStatusColor = Colors.grey;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkServerConnection();
+  }
+
+  Future<void> _checkServerConnection() async {
+    setState(() {
+      _serverStatus = 'Server: Checking...';
+      _serverStatusColor = Colors.orange;
+    });
+
+    final connected = await ApiService.checkConnection();
+
+    setState(() {
+      _serverStatus = connected ? 'Server: Connected ' : 'Server: Unreachable ';
+      _serverStatusColor = connected ? Colors.green : Colors.red;
+    });
+  }
+
+  Future<void> _startSpeedTest() async {
+    if (_isTesting) return;
+
+    final connected = await ApiService.checkConnection();
+    if (!connected) {
+      setState(() {
+        _status = 'Error: Server unreachable';
+        _serverStatus = 'Server: Unreachable';
+        _serverStatusColor = Colors.red;
+      });
+      return;
+    }
+
+    setState(() {
+      _isTesting = true;
+      _status = 'Testing...';
+      _downloadSpeed = 0;
+      _uploadSpeed = 0;
+      _ping = 0;
+    });
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    setState(() {
+      _isTesting = false;
+      _status = 'Done';
+      _lastTest = _formattedTime();
+    });
+  }
+
+  String _formattedTime() {
+    final now = DateTime.now();
+    final hour = now.hour % 12 == 0 ? 12 : now.hour % 12;
+    final minute = now.minute.toString().padLeft(2, '0');
+    final period = now.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('WiFi Logger'), centerTitle: false),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Current Network\n    Home_WiFi',
-            style: TextStyle(fontSize: 18),
-          ),
-          const SizedBox(height: 5),
-
-          Text('Download Speed\n       0 Mbps', style: TextStyle(fontSize: 18)),
-          const SizedBox(height: 5),
-
-          Text('Upload speed\n     0 Mbps', style: TextStyle(fontSize: 18)),
-
-          const SizedBox(height: 5),
-
-          Text('Ping\n0 ms', style: TextStyle(fontSize: 18)),
-
-          const SizedBox(height: 5),
-
-          Text('Status: Not Tested', style: TextStyle(fontSize: 18)),
-          const SizedBox(height: 5),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Container(
-              height: 50,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(15),
-              ),
+      appBar: AppBar(
+        title: const Text('WiFi Logger'),
+        centerTitle: false,
+        actions: [
+          GestureDetector(
+            onTap: _checkServerConnection,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Center(
                 child: Text(
-                  'START SPEED TEST',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                  _serverStatus,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _serverStatusColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 5),
-          Text('Last Test:\n   Never', style: TextStyle(fontSize: 18)),
+        ],
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const SizedBox(height: 10),
+
+          _infoTile('Current Network', _networkName),
+          _infoTile('Download Speed', '$_downloadSpeed Mbps'),
+          _infoTile('Upload Speed', '$_uploadSpeed Mbps'),
+          _infoTile('Ping', '$_ping ms'),
+          _infoTile('Status', _status),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: GestureDetector(
+              onTap: _isTesting ? null : _startSpeedTest,
+              child: Container(
+                height: 50,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: _isTesting ? Colors.grey : Colors.green,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Center(
+                  child: _isTesting
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'START SPEED TEST',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                ),
+              ),
+            ),
+          ),
+
+          _infoTile('Last Test', _lastTest),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoTile(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );
