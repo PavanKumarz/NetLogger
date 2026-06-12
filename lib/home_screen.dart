@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:network_info_plus/network_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:wifi_logger/services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -9,7 +11,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final String _networkName = 'Home_WiFi';
+  String _networkName = 'Fetching...';
   double _downloadSpeed = 0;
   double _uploadSpeed = 0;
   int _ping = 0;
@@ -23,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _checkServerConnection();
+    _getNetworkName();
   }
 
   Future<void> _checkServerConnection() async {
@@ -54,17 +57,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _isTesting = true;
-      _status = 'Testing...';
+      _status = 'Testing ping...';
       _downloadSpeed = 0;
       _uploadSpeed = 0;
       _ping = 0;
     });
 
-    await Future.delayed(const Duration(seconds: 2));
+    //  average of 5 pings
+    final List<int> pings = [];
+    for (int i = 0; i < 5; i++) {
+      final p = await ApiService.measurePing();
+      if (p != -1) pings.add(p);
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+
+    final avgPing = pings.isEmpty
+        ? 0
+        : (pings.reduce((a, b) => a + b) / pings.length).round();
 
     setState(() {
+      _ping = avgPing;
+      _status = 'Ping test done.';
       _isTesting = false;
-      _status = 'Done';
       _lastTest = _formattedTime();
     });
   }
@@ -75,6 +89,24 @@ class _HomeScreenState extends State<HomeScreen> {
     final minute = now.minute.toString().padLeft(2, '0');
     final period = now.hour >= 12 ? 'PM' : 'AM';
     return '$hour:$minute $period';
+  }
+
+  Future<void> _getNetworkName() async {
+    final status = await Permission.location.request();
+    if (!status.isGranted) {
+      setState(() => _networkName = 'Permission denied');
+      return;
+    }
+
+    final info = NetworkInfo();
+    final ssid = await info.getWifiName();
+
+    setState(() {
+      // If null then phone is on hotspot or mobile data not on wifi
+      _networkName = (ssid == null || ssid.isEmpty)
+          ? 'Mobile Hotspot'
+          : ssid.replaceAll('"', '');
+    });
   }
 
   @override

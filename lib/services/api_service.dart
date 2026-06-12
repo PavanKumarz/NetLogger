@@ -19,4 +19,23 @@ class ApiService {
       return false;
     }
   }
+
+  static Future<int> measurePing() async {
+    try {
+      final stopwatch = Stopwatch()..start();
+
+      final response = await http
+          .get(Uri.parse('$baseUrl/ping'))
+          .timeout(const Duration(seconds: 5));
+
+      stopwatch.stop();
+
+      if (response.statusCode == 200) {
+        return stopwatch.elapsedMilliseconds;
+      }
+      return -1;
+    } catch (e) {
+      return -1;
+    }
+  }
 }
