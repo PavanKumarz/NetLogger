@@ -38,4 +38,26 @@ class ApiService {
       return -1;
     }
   }
+
+  static Future<double> measureDownloadSpeed() async {
+    try {
+      final stopwatch = Stopwatch()..start();
+
+      final response = await http
+          .get(Uri.parse('$baseUrl/download'))
+          .timeout(const Duration(seconds: 30));
+
+      stopwatch.stop();
+
+      if (response.statusCode == 200) {
+        final bytes = response.contentLength ?? response.bodyBytes.length;
+        final seconds = stopwatch.elapsedMilliseconds / 1000;
+        final mbps = (bytes * 8) / (seconds * 1000000);
+        return double.parse(mbps.toStringAsFixed(2));
+      }
+      return -1;
+    } catch (e) {
+      return -1;
+    }
+  }
 }

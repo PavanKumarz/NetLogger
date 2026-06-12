@@ -57,28 +57,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _isTesting = true;
-      _status = 'Testing ping...';
       _downloadSpeed = 0;
       _uploadSpeed = 0;
       _ping = 0;
     });
 
-    //  average of 5 pings
+    // Ping
+    setState(() => _status = 'Testing ping...');
     final List<int> pings = [];
     for (int i = 0; i < 5; i++) {
       final p = await ApiService.measurePing();
       if (p != -1) pings.add(p);
       await Future.delayed(const Duration(milliseconds: 200));
     }
-
     final avgPing = pings.isEmpty
         ? 0
         : (pings.reduce((a, b) => a + b) / pings.length).round();
+    setState(() => _ping = avgPing);
+
+    // Download
+    setState(() => _status = 'Testing download...');
+    final download = await ApiService.measureDownloadSpeed();
+    setState(() => _downloadSpeed = download == -1 ? 0 : download);
 
     setState(() {
-      _ping = avgPing;
-      _status = 'Ping test done.';
       _isTesting = false;
+      _status = 'Done';
       _lastTest = _formattedTime();
     });
   }
