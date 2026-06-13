@@ -74,11 +74,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ? 0
         : (pings.reduce((a, b) => a + b) / pings.length).round();
     setState(() => _ping = avgPing);
-
     // Download
     setState(() => _status = 'Testing download...');
     final download = await ApiService.measureDownloadSpeed();
     setState(() => _downloadSpeed = download == -1 ? 0 : download);
+
+    // Upload
+    setState(() => _status = 'Testing upload...');
+    final upload = await ApiService.measureUploadSpeed();
+    setState(() => _uploadSpeed = upload == -1 ? 0 : upload);
 
     setState(() {
       _isTesting = false;

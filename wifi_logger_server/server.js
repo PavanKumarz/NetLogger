@@ -22,3 +22,15 @@ app.get('/download', (req, res) => {
   res.setHeader('Content-Length', size);
   res.send(buffer);
 });
+
+app.post('/upload', (req, res) => {
+  let received = 0;
+
+  req.on('data', (chunk) => {
+    received += chunk.length;
+  });
+
+  req.on('end', () => {
+    res.json({ status: 'ok', bytesReceived: received });
+  });
+});
