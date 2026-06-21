@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wifi_logger/services/api_service.dart';
 import 'package:wifi_logger/services/db_service.dart';
+import 'package:wifi_logger/services/background_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _status = 'Not Tested';
   String _lastTest = 'Never';
   bool _isTesting = false;
+  bool _backgroundEnabled = false;
   String _serverStatus = 'Server: Unknown';
   Color _serverStatusColor = Colors.grey;
 
@@ -27,6 +30,27 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _checkServerConnection();
     _getNetworkName();
+    _loadBackgroundState();
+  }
+
+  Future<void> _loadBackgroundState() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _backgroundEnabled = prefs.getBool('background_enabled') ?? false;
+    });
+  }
+
+  Future<void> _onBackgroundToggle(bool value) async {
+    setState(() => _backgroundEnabled = value);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('background_enabled', value);
+
+    if (value) {
+      await BackgroundService.startPeriodicTest();
+    } else {
+      await BackgroundService.stopPeriodicTest();
+    }
   }
 
   Future<void> _checkServerConnection() async {
@@ -75,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ? 0
         : (pings.reduce((a, b) => a + b) / pings.length).round();
     setState(() => _ping = avgPing);
+
     // Download
     setState(() => _status = 'Testing download...');
     final download = await ApiService.measureDownloadSpeed();
@@ -120,7 +145,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final ssid = await info.getWifiName();
 
     setState(() {
-      // If null then phone is on hotspot or mobile data not on wifi
       _networkName = (ssid == null || ssid.isEmpty)
           ? 'Mobile Hotspot'
           : ssid.replaceAll('"', '');
@@ -162,6 +186,17 @@ class _HomeScreenState extends State<HomeScreen> {
           _infoTile('Upload Speed', '$_uploadSpeed Mbps'),
           _infoTile('Ping', '$_ping ms'),
           _infoTile('Status', _status),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Background Testing'),
+              subtitle: const Text('Runs automatically every 15 minutes'),
+              value: _backgroundEnabled,
+              onChanged: _onBackgroundToggle,
+            ),
+          ),
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),

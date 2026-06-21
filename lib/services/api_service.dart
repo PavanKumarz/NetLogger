@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String baseUrl = 'http://your ip:3000';
+  static const String baseUrl = 'https://wifi-logger.onrender.com';
 
   static Future<bool> checkConnection() async {
     try {
@@ -18,6 +18,7 @@ class ApiService {
       }
       return false;
     } catch (e) {
+      print('CONNECTION ERROR: $e');
       return false;
     }
   }
