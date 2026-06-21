@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wifi_logger/services/api_service.dart';
-import 'package:wifi_logger/services/db_service.dart';
-import 'package:wifi_logger/services/background_service.dart';
+import 'package:net_logger/services/api_service.dart';
+import 'package:net_logger/services/db_service.dart';
+import 'package:net_logger/services/background_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('WiFi Logger'),
+        title: const Text('NetLogger'),
         centerTitle: false,
         actions: [
           GestureDetector(

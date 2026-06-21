@@ -45,4 +45,4 @@ app.*.map.json
 /android/app/release
 
 # Node.js
-wifi_logger_server/node_modules/
+**/node_modules/

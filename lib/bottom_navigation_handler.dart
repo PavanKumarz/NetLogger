@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wifi_logger/history_screen.dart';
-import 'package:wifi_logger/home_screen.dart';
+import 'package:net_logger/history_screen.dart';
+import 'package:net_logger/home_screen.dart';
 
 class BottomNavigationHandler extends StatefulWidget {
   const BottomNavigationHandler({super.key});

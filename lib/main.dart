@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wifi_logger/bottom_navigation_handler.dart';
-import 'package:wifi_logger/services/background_service.dart';
+import 'package:net_logger/bottom_navigation_handler.dart';
+import 'package:net_logger/services/background_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'WiFi Logger',
+      title: 'NetLogger',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),

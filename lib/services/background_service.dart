@@ -1,6 +1,6 @@
 import 'package:workmanager/workmanager.dart';
-import 'package:wifi_logger/services/api_service.dart';
-import 'package:wifi_logger/services/db_service.dart';
+import 'package:net_logger/services/api_service.dart';
+import 'package:net_logger/services/db_service.dart';
 
 const String speedTestTask = 'speedTestTask';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:wifi_logger/services/db_service.dart';
+import 'package:net_logger/services/db_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
