@@ -119,6 +119,15 @@ class _HomeScreenState extends State<HomeScreen> {
       testedAt: _formattedTime(),
     );
 
+    //Sync to PostgreSQL(silent fail if offline)
+    await ApiService.syncResult(
+      networkName: _networkName,
+      downloadSpeed: _downloadSpeed,
+      uploadSpeed: _uploadSpeed,
+      ping: _ping,
+      testedAt: _formattedTime(),
+    );
+
     setState(() {
       _isTesting = false;
       _status = 'Done';

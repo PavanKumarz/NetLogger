@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String baseUrl = 'https://wifi-logger.onrender.com';
+  static const String baseUrl = 'https://netlogger.onrender.com';
 
   static Future<bool> checkConnection() async {
     try {
@@ -90,6 +90,35 @@ class ApiService {
       return -1;
     } catch (e) {
       return -1;
+    }
+  }
+
+  static Future<bool> syncResult({
+    required String networkName,
+    required double downloadSpeed,
+    required double uploadSpeed,
+    required int ping,
+    required String testedAt,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/sync'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'networkName': networkName,
+              'downloadSpeed': downloadSpeed,
+              'uploadSpeed': uploadSpeed,
+              'ping': ping,
+              'testedAt': testedAt,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('SYNC ERROR: $e');
+      return false; //silent fail
     }
   }
 }
